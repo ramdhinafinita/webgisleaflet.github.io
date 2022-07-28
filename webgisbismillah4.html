@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Metadata -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="author" content="Ramdhina Finita">
+    <meta name="description" content="leaflet basic">
+
+    <!-- Judul pada tab browser -->
+    <title>Leaflet Covid-19 Sleman Regency </title>
+
+    <!-- Leaflet CSS Library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <link rel="stylesheet" href="assets/plugins/leaflet-search/leaflet-search.css">
+    <link rel="stylesheet" href="assets/plugins/leaflet-measure/leaflet-measure.css">
+    <link rel="stylesheet" href="assets/plugins/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.css">
+    <link rel="stylesheet" href="assets/plugins/leaflet-easyprint/easyPrint.css">
+    <link rel="stylesheet" href="assets/plugins/leaflet-compass/src/leaflet-compass.css">
+    <link rel="stylesheet" href="assets/plugins/leaflet-gps/src/leaflet-gps.css">
+    <link rel="stylesheet" href="assets/plugins/Leaflet-Coordinates-Control-master/Control.Coordinates.css">
+
+    <!-- Tab browser icon -->
+    <link rel="icon" type="image/x-icon" href="https://agricia.faperta.ugm.ac.id/wp-content/uploads/sites/377/2018/06/logo-ugm-png-289x300.png">
+
+    <!--GeoJSON-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Leaflet JavaScript Library -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    
+      
+        
+    <style>
+      /* Tampilan peta fullscreen */
+      html, body, #map {
+        height: 100%;
+        width: 100%;
+        margin: 0px; }
+
+    </style>
+    
+    <style>
+        .info { 
+            padding: 6px 8px; 
+            font: 14px/16px Arial, Helvetica, sans-serif; 
+            background: white; background: rgba(255, 255, 255, 0.8); 
+            box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+            border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
+    </style>
+
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="assets/plugins/leaflet-search/leaflet-search.js"></script>
+    <script src="assets/plugins/leaflet-measure/leaflet-measure.js"></script>
+    <script src="assets/plugins/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.js"></script>
+    <script src="assets/plugins/leaflet-easyprint/leaflet.easyPrint.js"></script>
+    <script src="assets/plugins/leaflet-compass/src/leaflet-compass.js"></script>
+    <script src="assets/plugins/leaflet-gps/src/leaflet-gps.js"></script>
+    <script src="assets/plugins/Leaflet-Coordinates-Control-master/Control.Coordinates.js"></script>
+         
+
+    <script>
+        
+        /* Initial Map Berfungsi untuk mengatur titik koordinat dan titik tengah dan level zoom pada basemap*/
+        var map = L.map('map').setView([-7.677567,110.406899],10); //lat, long, zoom
+
+        /* Tile Basemap berfungsi untuk menampilkan basemap yang akan ditampilkan */
+        var basemap1 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | <a href="DIVSIG UGM" target="_blank">Ramdhina Finita - 21/483541/SV/20340</a>' //menambahkan nama//
+        });
+
+        var basemap2 = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri World Street &copy; Esri | <a href="Latihan WebGIS" target="_blank">Ramdhina Finita - 21/483541/SV/20340</a>'
+        });
+
+        var basemap3 = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri Imagery &copy; Esri | <a href="Latihan WebGIS" target="_blank">Ramdhina Finita - 21/483541/SV/20340</a>'
+        });
+
+        var basemap4 = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri NatGeo World Map &copy; Esri | <a href="Latihan WebGIS" target="_blank">Ramdhina Finita - 21/483541/SV/20340</a>'
+        });
+
+        var basemap5 = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+            'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>', 
+        id: 'mapbox/light-v9',
+        });
+
+        basemap1.addTo(map);
+
+        // control that shows state info hover berfungsi untuk menambahkan settingan judulnya, disini hanya strukturnya saja. Style nya berada di <head>
+        var info = L.control();        
+
+        info.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        
+        info.update = function (props) {
+            this._div.innerHTML = '<h4>WebGIS | COVID-19 KABUPATEN SLEMAN</h4>' +  (props ?
+            '<b>' + props.JENIS + '</b><br />'
+            : 'Mata Kuliah Pemrograman Spasial : Web');
+        };
+        info.addTo(map);
+        
+        
+        /* Layer Marker */
+        var marker1 = L.marker([-7.766715,110.377460], {draggable: false});
+        marker1.addTo(map);
+        marker1.bindPopup("Gedung B DIVSIG UGM");
+
+        var marker2 = L.marker([-7.743168, 110.350276]);
+        marker2.addTo(map);
+        marker2.bindPopup("RS.Akademik UGM");
+        
+        var marker3 = L.marker([-7.973726, 110.303862]);
+        marker3.addTo(map);
+        marker3.bindPopup("Tempat tinggal Saya" + "<br>" + 
+        "Tapi rumah saya aslinya bukan disini hihi");
+        
+        
+            /* Menambah File geojson2 yakni RS Rujukan*/
+            var wfsgeoserver2 = L.geoJson(null, {
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng, {
+                        icon: L.icon({
+                            iconUrl: "assets/img/marker/fas_rumahsakit_rujukan.png", //URL icon marker
+                            iconSize: [30, 30], //ukuran icon marker
+                            iconAnchor: [16, 32], //icon marker offset
+                            popupAnchor: [0, -32], //popup offset
+                            tooltipAnchor: [16, -20] //tooltip offset
+                        })
+                    });
+                },
+                
+                onEachFeature: function (feature, layer) {
+                    /* Variabel content untuk memanggil atribut dari data file geojson */
+                    var content = "Nama : " + feature.properties.NAMA + "<br>" +
+                    "Alamat : " + feature.properties.ALAMAT + "<br>" +
+                    "Telepon : " + feature.properties.TELP + "<br>" +
+                    "Foto : " + feature.properties.FOTO ;
+
+                    layer.on({
+                        click: function (e) { //Fungsi ketika icon simbol di-klik
+                            wfsgeoserver2.bindPopup(content);
+                        },
+
+                        mouseover:function(e) {
+                            wfsgeoserver2.bindTooltip(feature.properties.nama);
+                        },
+
+                        mouseout:function(e) {
+                            wfsgeoserver2.closePopup();
+                        }
+                    });
+                }
+            });
+
+            $.getJSON("data/wfsgeojson2.php", function (data) {
+                wfsgeoserver2.addData(data);
+                map.addLayer(wfsgeoserver2);
+                //map.fitBounds(wfsgeojson2.getBounds());
+            });
+
+            //menambah titik fasilitas kesehatan yang lain
+            var wfsgeoserver1 = L.geoJson(null, {
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng, {
+                        icon: L.icon({
+                            iconUrl: "assets/img/marker/plus_6.png", //URL icon marker
+                            iconSize: [20, 20], //ukuran icon marker
+                            iconAnchor: [16, 32], //icon marker offset
+                            popupAnchor: [0, -32], //popup offset
+                            tooltipAnchor: [16, -20] //tooltip offset
+                        })
+                    });
+                },
+                
+                onEachFeature: function (feature, layer) {
+                    /* Variabel content untuk memanggil atribut dari data file geojson */
+                    var content = "Keterangan : " + feature.properties.LAYER + "<br>" +
+                    "Nama : " + feature.properties.NAMA + "<br>" +
+
+
+                    layer.on({
+                        click: function (e) { //Fungsi ketika icon simbol di-klik
+                            wfsgeoserver1.bindPopup(content);
+                        },
+
+                        mouseover:function(e) {
+                            wfsgeoserver1.bindTooltip(feature.properties.nama);
+                        },
+
+                        mouseout:function(e) {
+                            wfsgeoserver1.closePopup();
+                        }
+                    });
+                }
+            });
+
+            $.getJSON("data/wfsgeojson1.php", function (data) {
+                wfsgeoserver1.addData(data);
+                map.addLayer(wfsgeoserver1);
+                //map.fitBounds(wfsgeojson1.getBounds());
+            });
+
+            //menambah file batas admin
+            var wfsgeoserver3 = L.geoJson(null, {
+                style: function (feature) {
+                    if (feature.properties.FUNGSI === "Jalan Arteri") {
+                        return {
+                            color: "#A00000", //Warna garis
+                            dashArray: '',
+                            weight: 4, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }
+                    else  if (feature.properties.FUNGSI === "Jalan Kolektor" ) {
+                        return {
+                            color: "#B80000 ", //Warna garis
+                            dashArray: '',
+                            weight: 3, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }
+                    else  if (feature.properties.FUNGSI === "Jalan Lokal" ) {
+                        return {
+                            color: "#FF0000 ", //Warna garis
+                            dashArray: '2,4',
+                            weight: 2, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }
+                    else  if (feature.properties.FUNGSI === "Rel Kereta" ) {
+                        return {
+                            color: "#000000", //Warna garis
+                            dashArray: '2,4',
+                            weight: 2, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }                    
+                },
+                onEachFeature: function (feature, layer) {
+                    var content = "Fungsi: " + feature.properties.FUNGSI + "<br>" +
+                    "Kewenangan: " + feature.properties.KEWENANGAN + " Unit<br>" +
+                    "Nama Jalan: " + feature.properties.NAMA+ " Unit<br>" +
+                    "Sumber: " + feature.properties.SUMBER;
+
+                    var contentTable = "<table>" +
+                    "<tr><th>Fungsi</th><td>" + feature.properties.FUNGSI + "</td></tr>" +
+                    "<tr><th>Kewenangan</th><td>" + feature.properties.KEWENANGAN + " Unit</td></tr>" +
+                    "<tr><th>Nama Jalan</th><td>" + feature.properties.NAMA + " Unit</td></tr>" +
+                    "<tr><th>Sumber</th><td>" + feature.properties.SUMBER + " Unit</td></tr>" +
+                    "</table>";
+
+                    layer.on({
+                        click: function (e) { //Fungsi ketika obyek diklik
+                            wfsgeoserver3.bindPopup(
+                                'Fungsi: ' + feature.properties.FUNGSI + '<br>' +
+                                'Kewenangan: ' + feature.properties.KEWENANGAN + '<br>' +
+                                'Nama Jalan: ' + feature.properties.NAMA + '<br>' +
+                                'Sumber: ' + feature.properties.SUMBER
+                            );
+                        },
+                        mouseover: function (e) { //Fungsi mouse berada di atas obyek untuk highlight
+                            var layer = e.target; //variabel layer
+                            layer.setStyle({ //Highlight style
+                                weight: 2, //Tebal garis
+                                color: "#00FFFF", //Warna garis
+                                opacity: 1, //Transparansi garis
+                            });
+                            wfsgeoserver3.bindTooltip("Jenis " + feature.properties.FUNGSI, {sticky: true});
+                        },
+                        mouseout: function (e) { //Fungsi mouse keluar dari obyek
+                            wfsgeoserver3.resetStyle(e.target); //Mengembalikan style garis ke style awal
+                            wfsgeoserver3.closePopup(); //Menutup popup
+                        }
+                    });
+                },                    
+            });
+
+            $.getJSON("data/wfsgeojson3.php", function (data) {
+                wfsgeoserver3.addData(data);
+                map.addLayer(wfsgeoserver3);
+                //map.fitBounds(wfsgeojson3.getBounds());
+            });
+
+            //menambah file batas admin
+            var wfsgeoserver5 = L.geoJson(null, {
+                style: function (feature) {
+                    if (feature.properties.JENIS === "Batas Provinsi") {
+                        return {
+                            color: "#000000", //Warna garis
+                            dashArray: '',
+                            weight: 4, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }
+                    else  if (feature.properties.JENIS === "Batas Kabupaten" ) {
+                        return {
+                            color: "#000000", //Warna garis
+                            dashArray: '4,8',
+                            weight: 3, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }
+                    else  if (feature.properties.JENIS === "Batas Kecamatan" ) {
+                        return {
+                            color: "#000000", //Warna garis
+                            dashArray: '2,4',
+                            weight: 2, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }
+                    else  if (feature.properties.JENIS === "Batas Desa" ) {
+                        return {
+                            color: "#000000", //Warna garis
+                            dashArray: '1,2',
+                            weight: 1, //Tebal garis
+                            opacity: 1, //Transparansi garis                            
+                        }
+                    }                    
+                },
+                onEachFeature: function (feature, layer) {
+                    var content = "Jenis: " + feature.properties.JENIS + "<br>" +
+                    "Status: " + feature.properties.STATUS + " Unit<br>" +
+                    "Sumber: " + feature.properties.SUMBER_;
+
+                    var contentTable = "<table>" +
+                    "<tr><th>Jenis</th><td>" + feature.properties.JENIS + "</td></tr>" +
+                    "<tr><th>Status</th><td>" + feature.properties.STATUS + " Unit</td></tr>" +
+                    "<tr><th>Sumber</th><td>" + feature.properties.SUMBER_ + " Unit</td></tr>" +
+                    "</table>";
+
+                    layer.on({
+                        click: function (e) { //Fungsi ketika obyek diklik
+                            wfsgeoserver5.bindPopup(
+                                'Jenis: ' + feature.properties.JENIS + '<br>' +
+                                'Status: ' + feature.properties.STATUS + '<br>' +
+                                'Sumber: ' + feature.properties.SUMBER_
+                            );
+                        },
+                        mouseover: function (e) { //Fungsi mouse berada di atas obyek untuk highlight
+                            var layer = e.target; //variabel layer
+                            layer.setStyle({ //Highlight style
+                                weight: 2, //Tebal garis
+                                color: "#00FFFF", //Warna garis
+                                opacity: 1, //Transparansi garis
+                            });
+                            wfsgeoserver5.bindTooltip("Jenis " + feature.properties.JENIS, {sticky: true});
+                        },
+                        mouseout: function (e) { //Fungsi mouse keluar dari obyek
+                            wfsgeoserver5.resetStyle(e.target); //Mengembalikan style garis ke style awal
+                            wfsgeoserver5.closePopup(); //Menutup popup
+                        }
+                    });
+                },                    
+            });
+
+            $.getJSON("data/wfsgeojson5.php", function (data) {
+                wfsgeoserver5.addData(data);
+                map.addLayer(wfsgeoserver5);
+                //map.fitBounds(wfsgeojson5.getBounds());
+            });
+
+            //menambah file covid
+            var wfsgeoserver4 = L.geoJson(null, {
+            style: function (feature) {
+                if (feature.properties.AKTIF <= 200) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ffe6e6',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.AKTIF <= 400) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ffb3b3',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }                
+                else  if (feature.properties.AKTIF <=600 ) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ff8080',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.AKTIF >600 && feature.properties.AKTIF <=800 ) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ff4d4d',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.AKTIF >800 ) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ff1a1a',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+            },
+            onEachFeature: function (feature, layer) {
+                var content = "Kecamatan: " + feature.properties.KECAMATAN + "<br>" +
+                "Aktif: " + feature.properties.AKTIF + " Orang<br>" +
+                "Konfirmasi: " + feature.properties.KONFIRMASI + " Orang<br>" +
+                "Meninggal: " + feature.properties.MENINGGAL + " Orang<br>" +
+                "Sembuh: " + feature.properties.SEMBUH+" Orang<br>";
+
+                var contentTable = "<table>" +
+                "<tr><th>Kecamatan</th><td>" + feature.properties.KECAMATAN + "</td></tr>" +
+                "<tr><th>Aktif</th><td>" + feature.properties.AKTIF + " Orang</td></tr>" +
+                "<tr><th>Konfirmasi</th><td>" + feature.properties.KONFIRMASI + " Orang</td></tr>" +
+                "<tr><th>Meninggal</th><td>" + feature.properties.MENINGGAL + " Orang</td></tr>" +
+                "<tr><th>Sembuh</th><td>" + feature.properties.SEMBUH + " Orang</td></tr>" +
+                "</table>";
+
+                layer.on({
+                    click: function (e) { //Fungsi ketika obyek diklik
+                        wfsgeoserver4.bindPopup(contentTable);
+                    },
+
+                    mouseover: function (e) { //Fungsi mouse berada di atas obyek untuk highlight
+                        var layer = e.target; //variabel layer
+                        layer.setStyle({ //Highlight style
+                            weight: 0.2, //Tebal garis
+                            color: "grey", //Warna garis
+                            opacity: 1, //Transparansi garis
+                            fillColor: "cyan", //Warna tengah polygon
+                            fillOpacity:0.7, //Transparansi polygon
+                        });
+                        wfsgeoserver4.bindTooltip("Data COVID-19 Kecamatan " + feature.properties.KECAMATAN, {sticky: true});
+                    },
+                    mouseout: function (e) { //Fungsi mouse keluar dari obyek
+                        wfsgeoserver4.resetStyle(e.target); //Mengembalikan style garis ke style awal
+                        wfsgeoserver4.closePopup(); //Menutup popup
+                    }
+                });
+            },
+        });
+        $.getJSON("data/wfsgeojson4.php", function (data) {
+            wfsgeoserver4.addData(data);
+            map.addLayer(wfsgeoserver4);
+            //map.fitBounds(wfsgeojson4.getBounds());
+        });
+
+        //menambah jumlah penduduk penduduk
+            var wfsgeoserver6 = L.geoJson(null, {
+            style: function (feature) {
+                if (feature.properties.JUMLAH <= 51106) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#f7fbff',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.JUMLAH <= 71081) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#c8ddf0',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }                
+                else  if (feature.properties.JUMLAH <= 91055) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#73b3d8',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.JUMLAH >91005 && feature.properties.JUMLAH <= 111030 ) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#2879b9',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.JUMLAH > 111030 ) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#08306b',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+            },
+            onEachFeature: function (feature, layer) {
+                var content = "Kecamatan: " + feature.properties.KECAMATAN + "<br>" +
+                "Jumlah Penduduk: " + feature.properties.JUMLAH + " Orang<br>";
+
+                var contentTable = "<table>" +
+                "<tr><th>Kecamatan</th><td>" + feature.properties.KECAMATAN + "</td></tr>" +
+                "<tr><th>Jumlah Penduduk</th><td>" + feature.properties.JUMLAH + " Orang</td></tr>" +
+                "</table>";
+
+                layer.on({
+                    click: function (e) { //Fungsi ketika obyek diklik
+                        wfsgeoserver6.bindPopup(contentTable);
+                    },
+
+                    mouseover: function (e) { //Fungsi mouse berada di atas obyek untuk highlight
+                        var layer = e.target; //variabel layer
+                        layer.setStyle({ //Highlight style
+                            weight: 0.2, //Tebal garis
+                            color: "grey", //Warna garis
+                            opacity: 1, //Transparansi garis
+                            fillColor: "cyan", //Warna tengah polygon
+                            fillOpacity:0.7, //Transparansi polygon
+                        });
+                        wfsgeoserver6.bindTooltip("Jumlah Penduduk di Kecamatan " + feature.properties.KECAMATAN, {sticky: true});
+                    },
+                    mouseout: function (e) { //Fungsi mouse keluar dari obyek
+                        wfsgeoserver6.resetStyle(e.target); //Mengembalikan style garis ke style awal
+                        wfsgeoserver6.closePopup(); //Menutup popup
+                    }
+                });
+            },
+        });
+        $.getJSON("data/wfsgeojson6.php", function (data) {
+            wfsgeoserver6.addData(data);
+            map.addLayer(wfsgeoserver6);
+            //map.fitBounds(wfsgeojson6.getBounds());
+        });
+
+        //menambah jumlah penduduk miskin
+        var wfsgeoserver7 = L.geoJson(null, {
+            style: function (feature) {
+                if (feature.properties.JUMLAH <= 1279) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#fff7e6',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.JUMLAH <= 1639) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ffe6b3',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }                
+                else  if (feature.properties.JUMLAH <= 1998) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ffd480',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.JUMLAH >1998 && feature.properties.JUMLAH <= 2358) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#ffbb33',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+                else  if (feature.properties.JUMLAH > 2358) {
+                    return {
+                        color: 'black', //Warna garis
+                        fillColor:  '#e69900',
+                        weight: 0, //Tebal garis
+                        opacity: 1, //Transparansi garis
+                        fillOpacity: 0.7,
+                    }
+                }
+            },
+            onEachFeature: function (feature, layer) {
+                var content = "Kecamatan: " + feature.properties.KECAMATAN + "<br>" +
+                "Jumlah Penduduk: " + feature.properties.JUMLAH + " Orang<br>";
+
+                var contentTable = "<table>" +
+                "<tr><th>Kecamatan</th><td>" + feature.properties.KECAMATAN + "</td></tr>" +
+                "<tr><th>Jumlah Penduduk</th><td>" + feature.properties.JUMLAH + " Orang</td></tr>" +
+                "</table>";
+
+                layer.on({
+                    click: function (e) { //Fungsi ketika obyek diklik
+                        wfsgeoserver7.bindPopup(contentTable);
+                    },
+
+                    mouseover: function (e) { //Fungsi mouse berada di atas obyek untuk highlight
+                        var layer = e.target; //variabel layer
+                        layer.setStyle({ //Highlight style
+                            weight: 0.2, //Tebal garis
+                            color: "grey", //Warna garis
+                            opacity: 1, //Transparansi garis
+                            fillColor: "cyan", //Warna tengah polygon
+                            fillOpacity:0.7, //Transparansi polygon
+                        });
+                        wfsgeoserver7.bindTooltip("Jumlah Penduduk Miskin di Kecamatan " + feature.properties.KECAMATAN, {sticky: true});
+                    },
+                    mouseout: function (e) { //Fungsi mouse keluar dari obyek
+                        wfsgeoserver7.resetStyle(e.target); //Mengembalikan style garis ke style awal
+                        wfsgeoserver7.closePopup(); //Menutup popup
+                    }
+                });
+            },
+        });
+        $.getJSON("data/wfsgeojson7.php", function (data) {
+            wfsgeoserver7.addData(data);
+            map.addLayer(wfsgeoserver7);
+            //map.fitBounds(wfsgeojson7.getBounds());
+        });
+
+
+        var baseMaps = {
+            "OpenStreetMap": basemap1,
+            "Esri World Street": basemap2,
+            "Esri Imagery": basemap3,
+            "Esri NatGeo World Map": basemap4,
+            "Map Box Light": basemap5
+        };
+
+        //plugin grouplayer
+        var groupedOverlays = {
+            "Lokasi di Pin":{
+            "Gedung B DIVSIG UGM": marker1,
+            "RS.Akademik UGM": marker2,
+            "Rumah Saya" : marker3
+            },
+            "Keterangan":{
+            "Rumah Sakit Rujukan": wfsgeoserver2,
+            "Fasilitas Kesehatan": wfsgeoserver1,
+            "Jaringan Jalan": wfsgeoserver3,
+            "Batas Administrasi": wfsgeoserver5
+            },
+            "Peta":{
+            "Data Covid-19 Kab. Sleman":wfsgeoserver4,
+            "Data Jumlah Penduduk Kab. Sleman": wfsgeoserver6,
+            "Data Jumlah Pddk Miskin Kab. Sleman": wfsgeoserver7
+            }
+        };
+        var options = {
+        // Make the "Landmarks" group exclusive (use radio inputs)
+        exclusiveGroups: ["Peta"],
+        // Show a checkbox next to non-exclusive group labels for toggling all
+        groupCheckboxes: true
+        };
+        var layerControl = L.control.groupedLayers(baseMaps,groupedOverlays, options);map.addControl(layerControl);        
+       
+
+        //Plugin search
+        var controlSearch = new L.Control.Search({
+            layer: wfsgeoserver4,
+            position: 'topleft',
+            propertyName: "KECAMATAN",
+            INITIAL: false,
+            marker: false,
+            moveToLocation: function(latlng, title, map) {
+                var zoom = map.getBoundsZoom(latlng.layer.getBounds());
+                map.setView(latlng,zoom);
+            }
+        });
+        map.addControl( controlSearch );  //menambahakn tool pencarian ke tampilan map
+
+        //Plugin measure
+        var controlMeasure = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondLengthUnit: 'kilometers',
+            primaryAreaUnit: 'hectares',
+            secondAreahUnit: 'sqmeters',
+            activeColor: '#ff0000',
+            completedColor: '#00ff00'            
+        });
+        map.addControl(controlMeasure);
+
+        //Plugin Print
+        var easyPrint = L.easyPrint({
+            titleLayer: baseMaps,
+            sizeModes: ['Current', 'A4Landscape', 'A4Potrait'],
+            filename: 'myMap',
+            exportOnly: true,
+            hideControlContainer: true
+        }).addTo(map);
+        function manualPrint (){
+            printer.printMap('CurrentSize', 'MyManualPrint')
+        }
+        //Plugin Compass
+        var compass = new L.Control.Compass({autoActive: true, showDigit:true});
+        map.addControl(compass);
+
+        //Plugin GPS
+        var gps = new L.Control.Gps({
+            //autoActive:true,
+            autoCenter:true
+	    });//inizialize control
+
+        gps
+        .on('gps:located', function(e) {
+            //	e.marker.bindPopup(e.latlng.toString()).openPopup()
+            console.log(e.latlng, map.getCenter())
+        })
+        .on('gps:disabled', function(e) {
+            e.marker.closePopup()
+        });
+        gps.addTo(map);
+
+        //Plugin Coordinate
+        var c = new L.Control.Coordinates(); //you can send options to the constructor if you want to, otherwise default values are used
+
+        c.addTo(map);
+
+        map.on('click', function(e) {
+            c.setCoordinates(e);
+        });
+
+
+        
+        //add legenda dalam bentuk png
+        L.Control.Legenda = L.Control.extend({
+            onAdd: function(map){
+                var img = L.DomUtil.create('img');
+                img.src = 'assets/img/legend/legenda.png';
+                img.style.height = '300px';
+                return img;
+            }
+        });
+
+        L.control.watermark = function(opts){
+            return new L.Control.Legenda(opts); 
+        }
+        L.control.watermark({position:'bottomleft'}).addTo(map);
+        
+        //image watermark/logo
+        L.Control.Watermark = L.Control.extend({
+            onAdd: function(map){
+                var img = L.DomUtil.create('img');
+                img.src = 'assets/img/logo/LOGO_SIG_BLUE.png';
+                img.style.width = '100px';
+                return img;
+            }
+        });
+
+        L.control.watermark = function(opts){
+            return new L.Control.Watermark(opts); 
+        }
+        L.control.watermark({position:'bottomright'}).addTo(map);         
+
+        /* Scale Bar */
+        L.control.scale({ maxWidth: 150,position:'bottomright'}).addTo(map);
+         
+
+    </script>
+  </body>
+</html>
